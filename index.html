@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Woy — Haiti Social Video App</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --orange:#FF6A00;--gold:#FFC857;--bg:#000;--card:#111;
+  --elevated:#1a1a1a;--input:#1e1e1e;--border:#2a2a2a;
+  --text:#fff;--muted:#aaa;--dim:#666;--placeholder:#444;
+  --success:#00C853;--error:#FF3B5C;
+}
+html,body{height:100%;background:#0a0a0a;display:flex;justify-content:center;align-items:center;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+#app{width:390px;height:844px;background:var(--bg);border-radius:44px;overflow:hidden;border:2px solid #1e1e1e;box-shadow:0 24px 80px rgba(0,0,0,.8);position:relative;display:flex;flex-direction:column}
+.screen{display:none;flex-direction:column;height:100%;overflow:hidden}
+.screen.active{display:flex}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.scroll::-webkit-scrollbar{display:none}
+
+/* STATUS BAR */
+.statusbar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 20px 8px;flex-shrink:0;background:var(--bg);color:#fff;font-size:12px;font-weight:700}
+
+/* NAV */
+.nav{height:76px;background:#050505;border-top:1px solid #1a1a1a;display:flex;align-items:flex-start;padding-top:8px;flex-shrink:0}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 0}
+.ni-icon{font-size:22px;opacity:.3;transition:.2s}
+.ni-icon.on{opacity:1}
+.ni-label{font-size:9px;color:#444;transition:.2s}
+.ni-label.on{color:var(--gold);font-weight:700}
+.ni-plus{width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,var(--orange),var(--gold));display:flex;align-items:center;justify-content:center;margin-top:-12px;font-size:28px;color:#000;font-weight:200;cursor:pointer}
+
+/* TOAST */
+.toast{position:absolute;top:54px;left:16px;right:16px;background:linear-gradient(90deg,var(--orange),#CC5200);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;color:#fff;text-align:center;z-index:999;opacity:0;transform:translateY(-6px);transition:all .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* BUTTONS */
+.btn-primary{background:linear-gradient(90deg,var(--orange),#CC5200);border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;color:#fff;width:100%;cursor:pointer;font-family:inherit}
+.btn-outline{background:none;border:1.5px solid var(--border);border-radius:12px;padding:13px;font-size:14px;font-weight:600;color:var(--text);width:100%;cursor:pointer;font-family:inherit}
+.btn-danger{background:none;border:1.5px solid var(--error);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--error);cursor:pointer;font-family:inherit}
+input{background:var(--input);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:15px;color:var(--text);width:100%;outline:none;font-family:inherit}
+input::placeholder{color:var(--placeholder)}
+
+/* ── LOGIN ── */
+#screen-login .scroll{display:flex;flex-direction:column;align-items:center;padding:32px 24px 40px;gap:18px}
+.login-logo{width:200px;object-fit:contain}
+.login-tagline{font-size:14px;color:rgba(255,255,255,.4);letter-spacing:.5px}
+.form-fields{width:100%;display:flex;flex-direction:column;gap:10px}
+.forgot{align-self:flex-end;font-size:12px;color:var(--orange);cursor:pointer}
+.divider{display:flex;align-items:center;gap:10px;width:100%}
+.divider-line{flex:1;height:1px;background:var(--border)}
+.divider-txt{font-size:11px;color:#444;font-weight:600}
+.lang-pill{display:flex;align-items:center;gap:5px;background:rgba(255,106,0,.15);border:1px solid rgba(255,106,0,.3);border-radius:99px;padding:6px 12px;cursor:pointer}
+.lang-pill span{font-size:10px;font-weight:700;color:#FF8F3F}
+
+/* ── HOME FEED ── */
+.vbg{position:relative;flex:1;background:linear-gradient(175deg,#0d0600,#1a0800 40%,#0d0600);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.vdish{font-size:80px;opacity:.4;position:absolute;top:50%;left:50%;transform:translate(-50%,-60%)}
+.tgrad{position:absolute;top:0;left:0;right:0;height:160px;background:linear-gradient(to bottom,rgba(0,0,0,.85),transparent)}
+.bgrad{position:absolute;bottom:0;left:0;right:0;height:300px;background:linear-gradient(to top,rgba(0,0,0,.95),rgba(0,0,0,.5) 50%,transparent)}
+.feed-header{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:flex-end;padding:0 14px 8px;z-index:10}
+.feed-logo{height:32px;object-fit:contain}
+.feed-tabs{flex:1;display:flex;justify-content:center;gap:22px}
+.ftab{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.ftab-t{font-size:14px;font-weight:600;color:rgba(255,255,255,.4)}
+.ftab-t.on{color:#fff;font-weight:800}
+.ftab-bar{width:18px;height:2.5px;background:var(--orange);border-radius:2px}
+.feed-right{display:flex;align-items:center;gap:8px}
+.search-ico{font-size:20px;cursor:pointer}
+.lpill{display:flex;align-items:center;gap:3px;background:rgba(255,106,0,.18);border:1px solid rgba(255,106,0,.35);border-radius:99px;padding:4px 9px;cursor:pointer}
+.lpill-f{font-size:13px}
+.lpill-c{font-size:9px;font-weight:700;color:#FF8F3F}
+.feed-actions{position:absolute;right:12px;bottom:80px;display:flex;flex-direction:column;gap:18px;align-items:center;z-index:10}
+.fact{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.fact-icon{font-size:28px}
+.fact-lbl{font-size:10px;color:#fff;font-weight:600}
+.feed-info{position:absolute;left:14px;right:82px;bottom:72px;z-index:10;display:flex;flex-direction:column;gap:6px}
+.fuser{display:flex;align-items:center;gap:8px}
+.fav{width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,var(--orange),var(--gold));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#000;border:2px solid rgba(255,255,255,.9);flex-shrink:0}
+.fname{font-size:14px;font-weight:700;color:#fff}
+.fhandle{font-size:11px;color:rgba(255,255,255,.5)}
+.follow-chip{background:rgba(255,106,0,.25);border:1px solid rgba(255,106,0,.6);border-radius:99px;padding:3px 9px;font-size:10px;font-weight:700;color:#FF8F3F;cursor:pointer;white-space:nowrap}
+.vtitle{font-size:13px;color:rgba(255,255,255,.92);line-height:1.45}
+.vhash{font-size:12px;color:var(--gold);font-weight:600}
+.dots{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:10}
+.dot{width:3px;border-radius:2px;background:rgba(255,255,255,.22)}
+.dot.on{background:var(--orange);height:18px}
+.dot:not(.on){height:4px}
+
+/* GIFT SHEET */
+.gsheet{position:absolute;bottom:-100%;left:0;right:0;background:#1a1a1a;border-radius:22px 22px 0 0;padding:16px 14px 32px;z-index:20;transition:bottom .3s}
+.gsheet.open{bottom:0}
+.gs-handle{width:38px;height:4px;background:#333;border-radius:2px;margin:0 auto 13px}
+.gs-title{font-size:14px;font-weight:700;color:#fff;text-align:center;margin-bottom:14px}
+.gs-row{display:flex;justify-content:space-around}
+.gi{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.gi-e{font-size:30px;transition:transform .15s}
+.gi:active .gi-e{transform:scale(1.3)}
+.gi-c{background:#1F1500;border-radius:99px;padding:2px 7px;border:1px solid #3A2200;font-size:9px;color:var(--gold);font-weight:700}
+.gs-close{text-align:center;margin-top:13px;color:var(--dim);font-size:13px;cursor:pointer}
+
+/* ── PROFILE ── */
+.profile-top{background:linear-gradient(180deg,#120700,#000);padding:52px 20px 22px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ptoprow{display:flex;justify-content:space-between;width:100%;margin-bottom:6px}
+.pav{width:88px;height:88px;border-radius:44px;background:linear-gradient(135deg,var(--orange),var(--gold));display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:#000;border:3px solid #fff}
+.pname{font-size:21px;font-weight:800;color:#fff}
+.phandle{font-size:13px;color:rgba(255,255,255,.5)}
+.pbio{font-size:12px;color:var(--muted);text-align:center;max-width:260px;line-height:1.5}
+.ploc{font-size:11px;color:var(--dim)}
+.pstats{display:flex;gap:28px;margin-top:4px}
+.pstat{text-align:center}
+.pstat-val{font-size:19px;font-weight:800;color:#fff}
+.pstat-lbl{font-size:10px;color:var(--dim)}
+.coin-row{display:flex;align-items:center;gap:8px;background:#1F1500;border-radius:99px;padding:7px 16px;border:1px solid var(--gold);cursor:pointer}
+.coin-txt{color:var(--gold);font-weight:700;font-size:14px}
+.pbtnrow{display:flex;gap:10px;width:100%;margin-top:4px}
+.vgrid{display:flex;flex-wrap:wrap}
+.vthumb{width:33.333%;aspect-ratio:1;background:#111;border:.5px solid #000;display:flex;align-items:center;justify-content:center;font-size:20px;opacity:.4;cursor:pointer;position:relative;overflow:hidden}
+.vthumb-lbl{position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.6);border-radius:3px;padding:1px 4px;font-size:9px;color:#fff}
+
+/* ── SEARCH ── */
+.searchbar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--bg);flex-shrink:0}
+.search-wrap{flex:1;display:flex;align-items:center;gap:8px;background:var(--input);border-radius:12px;padding:0 14px;border:1px solid var(--border)}
+.search-wrap input{border:none;background:none;padding:12px 0}
+.stabs{display:flex;gap:8px;padding:0 14px 10px;overflow-x:auto}
+.stab{padding:6px 14px;border-radius:99px;background:var(--card);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--dim);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.stab.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.stag-row{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer}
+.stag{font-size:14px;color:var(--gold);font-weight:600}
+.stag-count{font-size:12px;color:var(--dim)}
+.suser-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer}
+.suser-av{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#000}
+.suser-name{font-size:14px;font-weight:700;color:#fff}
+.suser-meta{font-size:11px;color:var(--dim)}
+.sec-title{font-size:14px;font-weight:700;color:#fff;padding:12px 16px 6px}
+
+/* ── NOTIFICATIONS ── */
+.notif-row{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}
+.notif-row.unread{background:rgba(255,106,0,.05)}
+.notif-ico{width:42px;height:42px;border-radius:21px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.notif-title{font-size:13px;font-weight:600;color:#fff;line-height:1.4}
+.notif-body{font-size:12px;color:var(--muted);line-height:1.4;margin-top:2px}
+.notif-time{font-size:10px;color:var(--dim);margin-top:3px}
+.notif-dot{width:8px;height:8px;border-radius:4px;background:var(--orange);margin-top:6px;flex-shrink:0}
+
+/* ── COINS ── */
+.bal-card{margin:14px;border-radius:16px;padding:22px;display:flex;flex-direction:column;align-items:center;gap:7px;border:1px solid #3A2200;background:linear-gradient(135deg,#2A1800,#120A00)}
+.bal-lbl{font-size:10px;color:#AA7700;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.bal-row{display:flex;align-items:center;gap:10px}
+.bal-coin{width:54px;height:54px;object-fit:contain}
+.bal-amt{font-size:48px;font-weight:900;color:var(--gold);line-height:1}
+.bal-sub{font-size:11px;color:#AA7700}
+.pkg-grid{display:flex;flex-wrap:wrap;gap:10px;padding:0 14px}
+.pkg-card{width:calc(50% - 5px);background:linear-gradient(135deg,#1F1500,#120A00);border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid #3A2200;cursor:pointer}
+.pkg-coins{font-size:14px;font-weight:800;color:var(--gold);display:flex;align-items:center;gap:4px}
+.pkg-coin-sm{width:18px;height:18px;object-fit:contain}
+.pkg-bonus{background:#1A2200;border-radius:99px;padding:2px 7px;font-size:9px;color:var(--success);font-weight:700}
+.pkg-label{font-size:10px;color:#AA7700;font-weight:600}
+.pkg-price{font-size:20px;font-weight:900;color:#fff}
+.pkg-buy{border-radius:8px;padding:6px 18px;font-size:12px;font-weight:800;color:#000;background:linear-gradient(90deg,var(--orange),var(--gold));border:none;cursor:pointer}
+.earn-row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:12px;padding:13px;margin:0 14px}
+.section-title{font-size:16px;font-weight:700;color:#fff;padding:14px 14px 8px}
+.tx-row{display:flex;align-items:center;gap:10px;background:var(--card);padding:12px 14px;border-radius:8px;margin:0 14px 4px}
+.tx-desc{flex:1;font-size:12px;color:#fff}
+.tx-date{font-size:10px;color:var(--dim)}
+.tx-amt{font-size:13px;font-weight:700}
+
+/* ── UPLOAD ── */
+.upload-pick{border:2px dashed var(--border);border-radius:16px;padding:36px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;background:var(--card);cursor:pointer;margin:0 14px}
+.upload-icon{font-size:52px}
+.upload-title{font-size:16px;font-weight:700;color:#fff}
+.upload-sub{font-size:12px;color:var(--dim)}
+.field{display:flex;flex-direction:column;gap:6px;padding:0 14px}
+.field label{font-size:12px;font-weight:600;color:var(--muted)}
+
+/* ── SHOP ── */
+.shop-tabs{display:flex;gap:8px;padding:10px 14px;flex-shrink:0}
+.shop-tab{flex:1;padding:9px;border-radius:10px;background:var(--card);border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--dim);text-align:center;cursor:pointer}
+.shop-tab.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.plan-card{margin:0 14px 12px;border-radius:14px;overflow:hidden;border:1px solid var(--border)}
+.plan-hdr{padding:18px;display:flex;flex-direction:column;gap:4px}
+.plan-name{font-size:20px;font-weight:900;color:#fff}
+.plan-price{font-size:14px;font-weight:700;color:rgba(255,255,255,.85)}
+.plan-perks{background:var(--card);padding:14px;display:flex;flex-direction:column;gap:8px}
+.plan-perk{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
+.check{color:var(--success);font-weight:800}
+
+/* ── SCREEN HEADER ── */
+.shead{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;flex-shrink:0;background:var(--bg)}
+.shead-title{font-size:17px;font-weight:700;color:#fff}
+.back-btn{font-size:26px;color:#fff;cursor:pointer;width:40px}
+.mark-read{font-size:13px;color:var(--orange);font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="toast" id="toast"></div>
+
+<!-- ══ LOGIN ══════════════════════════════════ -->
+<div class="screen active" id="screen-login">
+  <div class="statusbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="scroll" style="display:flex;flex-direction:column;align-items:center;padding:20px 24px 40px;gap:16px">
+    <div style="font-size:52px;font-weight:900;background:linear-gradient(135deg,#FF6A00,#FFC857);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-2px;text-align:center">Woy</div>
+    <div class="login-tagline">Pale · Pataje · Konekte</div>
+    <div class="form-fields">
+      <input type="email" id="login-email" placeholder="Imèl ou (email)">
+      <input type="password" id="login-password" placeholder="Modpas (password)">
+      <div class="forgot" onclick="go('forgot')">Bliye modpas?</div>
+      <button class="btn-primary" onclick="doLogin()">Konekte — Sign In</button>
+    </div>
+    <div class="divider"><div class="divider-line"></div><span class="divider-txt">OU</span><div class="divider-line"></div></div>
+    <button class="btn-outline" onclick="go('register')">Kreye Kont — Create Account</button>
+    <div class="lang-pill" onclick="cycleLang()">
+      <span id="lang-flag" style="font-size:16px">🇭🇹</span>
+      <span id="lang-code">HT ▾</span>
+    </div>
+    <div style="font-size:11px;color:var(--dim);text-align:center;line-height:1.6">
+      Demo accounts:<br>
+      admin@woy.app / Admin1234!<br>
+      marie@woy.app / Marie1234!
+    </div>
+  </div>
+</div>
+
+<!-- ══ REGISTER ═══════════════════════════════ -->
+<div class="screen" id="screen-register">
+  <div class="statusbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="scroll" style="padding:20px 24px 40px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="color:var(--orange);font-size:14px;cursor:pointer" onclick="go('login')">← Retou</span>
+      <div class="lang-pill" onclick="cycleLang()"><span id="lang-flag2" style="font-size:14px">🇭🇹</span><span id="lang-code2" style="font-size:9px;font-weight:700;color:#FF8F3F">HT ▾</span></div>
+    </div>
+    <div style="font-size:26px;font-weight:800;color:#fff">Kreye Kont</div>
+    <input type="text" id="reg-name" placeholder="Non konplè (Display name)">
+    <input type="email" id="reg-email" placeholder="Imèl (Email)">
+    <input type="text" id="reg-username" placeholder="Non itilizatè (Username)">
+    <input type="password" id="reg-password" placeholder="Modpas (min 8 chars)">
+    <div>
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px">Depatman (Department)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="dept-chips"></div>
+    </div>
+    <button class="btn-primary" onclick="doRegister()">Kreye Kont — Create Account</button>
+  </div>
+</div>
+
+<!-- ══ HOME FEED ═══════════════════════════════ -->
+<div class="screen" id="screen-home">
+  <div class="vbg" id="vbg">
+    <div class="vdish" id="vdish">🍲</div>
+    <div class="tgrad"></div>
+    <div class="bgrad"></div>
+    <div class="dots">
+      <div class="dot"></div><div class="dot"></div>
+      <div class="dot on"></div>
+      <div class="dot"></div><div class="dot"></div>
+    </div>
+    <div class="feed-header">
+      <div style="font-size:28px;font-weight:900;background:linear-gradient(135deg,#FF6A00,#FFC857);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px;width:70px">Woy</div>
+      <div class="feed-tabs">
+        <div class="ftab" onclick="switchFeed('following')"><span class="ftab-t" id="tab-f">Abòne</span></div>
+        <div class="ftab" onclick="switchFeed('foryou')">
+          <span class="ftab-t on" id="tab-p">Pou Ou</span>
+          <div class="ftab-bar"></div>
+        </div>
+      </div>
+      <div class="feed-right">
+        <span class="search-ico" onclick="go('search')">🔍</span>
+        <div class="lpill" onclick="cycleLang()"><span class="lpill-f" id="lf">🇭🇹</span><span class="lpill-c" id="lc">HT</span></div>
+      </div>
+    </div>
+    <div class="feed-actions">
+      <div class="fact" onclick="toggleLike()">
+        <span class="fact-icon" id="heart-icon">🤍</span>
+        <span class="fact-lbl" id="like-count" style="color:var(--gold)">0</span>
+      </div>
+      <div class="fact" onclick="go('detail')">
+        <span class="fact-icon">💬</span>
+        <span class="fact-lbl" id="comment-count">0</span>
+      </div>
+      <div class="fact" onclick="showToast('🎙️ Voice reaction recorded!')">
+        <span class="fact-icon">🎙️</span>
+        <span class="fact-lbl" id="voice-count">0</span>
+      </div>
+      <div class="fact" onclick="openGifts()">
+        <span style="font-size:24px">🪙</span>
+        <span class="fact-lbl" style="color:var(--gold)">Kado</span>
+      </div>
+      <div class="fact" onclick="showToast('Pataje ↗️')">
+        <span class="fact-icon">↗️</span>
+        <span class="fact-lbl">Pataje</span>
+      </div>
+    </div>
+    <div class="feed-info">
+      <div class="fuser">
+        <div class="fav" id="vid-av">M</div>
+        <div>
+          <div class="fname" id="vid-name">Marie Jean-Baptiste</div>
+          <div class="fhandle" id="vid-handle">@mariejo_ht</div>
+        </div>
+        <div class="follow-chip" onclick="toggleFollow()" id="follow-chip">+ Suiv</div>
+      </div>
+      <div class="vtitle" id="vid-title">Soup Joumou tradisyonèl pou 1ye Janvye! 🇭🇹</div>
+      <div class="vhash" id="vid-tags">#haiti #soujoumou #manje</div>
+    </div>
+    <div class="gsheet" id="gsheet">
+      <div class="gs-handle"></div>
+      <div class="gs-title">Voye Kado</div>
+      <div class="gs-row">
+        <div class="gi" onclick="sendGift('rose',10)"><span class="gi-e">🌹</span><span class="gi-c">10</span></div>
+        <div class="gi" onclick="sendGift('heart',20)"><span class="gi-e">❤️</span><span class="gi-c">20</span></div>
+        <div class="gi" onclick="sendGift('flag_ht',50)"><span class="gi-e">🇭🇹</span><span class="gi-c">50</span></div>
+        <div class="gi" onclick="sendGift('crown',100)"><span class="gi-e">👑</span><span class="gi-c">100</span></div>
+        <div class="gi" onclick="sendGift('diamond',500)"><span class="gi-e">💎</span><span class="gi-c">500</span></div>
+        <div class="gi" onclick="sendGift('rocket',1000)"><span class="gi-e">🚀</span><span class="gi-c">1k</span></div>
+      </div>
+      <div class="gs-close" onclick="closeGifts()">Fèmen</div>
+    </div>
+  </div>
+  <div class="nav" id="nav-home">
+    <div class="ni" onclick="navTo('home')"><span class="ni-icon on">🏠</span><span class="ni-label on">Akèy</span></div>
+    <div class="ni" onclick="navTo('search')"><span class="ni-icon">🔍</span><span class="ni-label">Chèche</span></div>
+    <div class="ni"><div class="ni-plus" onclick="go('upload')">+</div></div>
+    <div class="ni" onclick="navTo('coins')"><span class="ni-icon">🪙</span><span class="ni-label">Pyès</span></div>
+    <div class="ni" onclick="navTo('profile')"><span class="ni-icon">👤</span><span class="ni-label">Mwen</span></div>
+  </div>
+</div>
+
+<!-- ══ PROFILE ════════════════════════════════ -->
+<div class="screen" id="screen-profile">
+  <div class="scroll">
+    <div class="profile-top">
+      <div class="ptoprow">
+        <span class="back-btn" onclick="goBack()">←</span>
+        <div class="lang-pill" onclick="cycleLang()"><span style="font-size:14px">🇭🇹</span><span style="font-size:9px;font-weight:700;color:#FF8F3F">HT ▾</span></div>
+      </div>
+      <div class="pav" id="p-av">M</div>
+      <div class="pname" id="p-name">Marie Jean-Baptiste</div>
+      <div class="phandle" id="p-handle">@mariejo_ht</div>
+      <div class="pbio" id="p-bio">Ayisyèn fyè 🇭🇹 | Kizin | Mizik</div>
+      <div class="ploc" id="p-loc">🇭🇹 Pòtoprens, Ouest</div>
+      <div class="pstats">
+        <div class="pstat"><div class="pstat-val" id="p-videos">47</div><div class="pstat-lbl">Videyo</div></div>
+        <div class="pstat"><div class="pstat-val" id="p-followers">12.4k</div><div class="pstat-lbl">Abòne</div></div>
+        <div class="pstat"><div class="pstat-val" id="p-following">318</div><div class="pstat-lbl">Abònman</div></div>
+      </div>
+      <div class="coin-row" onclick="navTo('coins')">
+        <span style="font-size:18px">🪙</span>
+        <span class="coin-txt" id="p-coins">1,250 Pyès Woy HT</span>
+        <span style="color:var(--orange);font-weight:700;margin-left:6px">+</span>
+      </div>
+      <div class="pbtnrow">
+        <button class="btn-outline" onclick="showToast('Edit profile coming soon!')" style="flex:1">Modifye Pwofil</button>
+        <button class="btn-danger" onclick="doLogout()">Soti</button>
+      </div>
+    </div>
+    <div class="vgrid" id="p-grid"></div>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="navTo('home')"><span class="ni-icon">🏠</span><span class="ni-label">Akèy</span></div>
+    <div class="ni" onclick="navTo('search')"><span class="ni-icon">🔍</span><span class="ni-label">Chèche</span></div>
+    <div class="ni"><div class="ni-plus" onclick="go('upload')">+</div></div>
+    <div class="ni" onclick="navTo('coins')"><span class="ni-icon">🪙</span><span class="ni-label">Pyès</span></div>
+    <div class="ni" onclick="navTo('profile')"><span class="ni-icon on">👤</span><span class="ni-label on">Mwen</span></div>
+  </div>
+</div>
+
+<!-- ══ SEARCH ══════════════════════════════════ -->
+<div class="screen" id="screen-search">
+  <div class="statusbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="searchbar">
+    <span class="back-btn" onclick="goBack()" style="font-size:22px">←</span>
+    <div class="search-wrap">
+      <span style="font-size:16px">🔍</span>
+      <input type="text" placeholder="Chèche..." id="search-input" oninput="doSearch(this.value)">
+    </div>
+  </div>
+  <div class="stabs">
+    <div class="stab on">Tout</div>
+    <div class="stab">Itilizatè</div>
+    <div class="stab">Videyo</div>
+    <div class="stab">Hashtag</div>
+  </div>
+  <div class="scroll" id="search-results">
+    <div class="sec-title">🔥 Trending Kounye a</div>
+    <div class="stag-row" onclick="showToast('#haiti selected')"><span class="stag">#haiti</span><span class="stag-count">24.8k videyo</span></div>
+    <div class="stag-row" onclick="showToast('#soujoumou selected')"><span class="stag">#soujoumou</span><span class="stag-count">8.4k videyo</span></div>
+    <div class="stag-row" onclick="showToast('#kompa selected')"><span class="stag">#kompa</span><span class="stag-count">6.7k videyo</span></div>
+    <div class="stag-row" onclick="showToast('#lwes selected')"><span class="stag">#lwes</span><span class="stag-count">5.1k videyo</span></div>
+    <div class="stag-row" onclick="showToast('#ayisyen selected')"><span class="stag">#ayisyen</span><span class="stag-count">4.2k videyo</span></div>
+    <div class="sec-title">👥 Itilizatè Popilè</div>
+    <div class="suser-row" onclick="navTo('profile')">
+      <div class="suser-av" style="background:linear-gradient(135deg,#FF6A00,#FFC857)">M</div>
+      <div><div class="suser-name">Marie Jean-Baptiste</div><div class="suser-meta">@mariejo_ht · Lwès · 12.4k abòne</div></div>
+    </div>
+    <div class="suser-row" onclick="showToast('Viewing @jeanpierre_ht')">
+      <div class="suser-av" style="background:linear-gradient(135deg,#0057FF,#4D8BFF)">J</div>
+      <div><div class="suser-name">Jean Pierre</div><div class="suser-meta">@jeanpierre_ht · Nò-Es · 3.2k abòne</div></div>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="navTo('home')"><span class="ni-icon">🏠</span><span class="ni-label">Akèy</span></div>
+    <div class="ni" onclick="navTo('search')"><span class="ni-icon on">🔍</span><span class="ni-label on">Chèche</span></div>
+    <div class="ni"><div class="ni-plus" onclick="go('upload')">+</div></div>
+    <div class="ni" onclick="navTo('coins')"><span class="ni-icon">🪙</span><span class="ni-label">Pyès</span></div>
+    <div class="ni" onclick="navTo('profile')"><span class="ni-icon">👤</span><span class="ni-label">Mwen</span></div>
+  </div>
+</div>
+
+<!-- ══ NOTIFICATIONS ═══════════════════════════ -->
+<div class="screen" id="screen-notifications">
+  <div class="statusbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="shead">
+    <span class="back-btn" onclick="goBack()">←</span>
+    <span class="shead-title">Notifikasyon</span>
+    <span class="mark-read" onclick="showToast('Li tout ✓')">Li tout</span>
+  </div>
+  <div class="scroll" id="notif-list">
+    <div class="notif-row unread" onclick="navTo('home')">
+      <div class="notif-ico">❤️</div>
+      <div style="flex:1"><div class="notif-title">Jean Pierre renmen videyo ou a</div><div class="notif-body">Soup Joumou tradisyonèl...</div><div class="notif-time">5 minit</div></div>
+      <div class="notif-dot"></div>
+    </div>
+    <div class="notif-row unread" onclick="navTo('profile')">
+      <div class="notif-ico">👤</div>
+      <div style="flex:1"><div class="notif-title">Sonia Beaumont suiv ou</div><div class="notif-time">23 minit</div></div>
+      <div class="notif-dot"></div>
+    </div>
+    <div class="notif-row unread" onclick="navTo('coins')">
+      <div class="notif-ico">🎁</div>
+      <div style="flex:1"><div class="notif-title">Ou resevwa Crown gift!</div><div class="notif-body">@jeanpierre voye 👑 — +80 pyès</div><div class="notif-time">1 è</div></div>
+      <div class="notif-dot"></div>
+    </div>
+    <div class="notif-row" onclick="navTo('home')">
+      <div class="notif-ico">💬</div>
+      <div style="flex:1"><div class="notif-title">@claudette kòmante sou videyo ou</div><div class="notif-body">"Mwen renmen sa! Mèsi anpil..."</div><div class="notif-time">3 è</div></div>
+    </div>
+    <div class="notif-row">
+      <div class="notif-ico">📢</div>
+      <div style="flex:1"><div class="notif-title">Byenveni sou Woy! 🇭🇹</div><div class="notif-body">Kòmanse pataje ak kominote ayisyèn nou an</div><div class="notif-time">2 jou</div></div>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="navTo('home')"><span class="ni-icon">🏠</span><span class="ni-label">Akèy</span></div>
+    <div class="ni" onclick="navTo('search')"><span class="ni-icon">🔍</span><span class="ni-label">Chèche</span></div>
+    <div class="ni"><div class="ni-plus" onclick="go('upload')">+</div></div>
+    <div class="ni" onclick="navTo('coins')"><span class="ni-icon">🪙</span><span class="ni-label">Pyès</span></div>
+    <div class="ni" onclick="navTo('profile')"><span class="ni-icon">👤</span><span class="ni-label">Mwen</span></div>
+  </div>
+</div>
+
+<!-- ══ COINS ═══════════════════════════════════ -->
+<div class="screen" id="screen-coins">
+  <div class="statusbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="shead">
+    <span class="back-btn" onclick="goBack()">←</span>
+    <span class="shead-title">Pyès Woy HT</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="scroll">
+    <div class="bal-card">
+      <div class="bal-lbl">Balans Ou</div>
+      <div class="bal-row">
+        <span style="font-size:42px">🪙</span>
+        <span class="bal-amt" id="coin-balance-display">1,250</span>
+      </div>
+      <div class="bal-sub">Pyès Woy HT</div>
+    </div>
+    <div style="margin:0 14px 12px;background:var(--card);border-radius:14px;padding:14px;border:1.5px solid rgba(255,200,87,.3);display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:24px">🪙</span>
+        <div><div style="font-size:13px;font-weight:700;color:#fff">Creator Milestone Bonus</div><div style="font-size:11px;color:var(--gold)">One-time · 100 coins</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.5">10 videyo × 101+ likes + 201 abòne</div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px;color:var(--muted)" id="prog-followers-lbl">0 / 201 abòne</span><span style="font-size:11px;color:#444;font-weight:700">✗</span></div>
+        <div style="height:4px;background:#2a2a2a;border-radius:3px;overflow:hidden"><div id="prog-followers" style="width:0%;height:100%;background:var(--orange);border-radius:3px;transition:.3s"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px;color:var(--muted)" id="prog-videos-lbl">0 / 10 videyo ak 101+ likes</span><span style="font-size:11px;color:#444;font-weight:700">✗</span></div>
+        <div style="height:4px;background:#2a2a2a;border-radius:3px;overflow:hidden"><div id="prog-videos" style="width:0%;height:100%;background:var(--orange);border-radius:3px;transition:.3s"></div></div>
+      </div>
+      <div style="background:linear-gradient(90deg,#2a2a2a,#1a1a1a);border-radius:8px;padding:12px;text-align:center;font-size:12px;font-weight:700;color:#555">Complete milestones to unlock</div>
+    </div>
+    <div class="section-title">Achte Pyès</div>
+    <div class="pkg-grid">
+      <div class="pkg-card" onclick="showToast('$0.99 → 100 pyès (Demo mode)')"><div class="pkg-coins"><span style="font-size:14px">🪙</span>100</div><div class="pkg-label">Starter</div><div class="pkg-price">$0.99</div><button class="pkg-buy">Achte</button></div>
+      <div class="pkg-card" onclick="showToast('$3.99 → 550 pyès (Demo mode)')"><div class="pkg-coins"><span style="font-size:14px">🪙</span>550</div><div class="pkg-bonus">+50 bonus</div><div class="pkg-label">Popular</div><div class="pkg-price">$3.99</div><button class="pkg-buy">Achte</button></div>
+      <div class="pkg-card" onclick="showToast('$6.99 → 1,150 pyès (Demo mode)')"><div class="pkg-coins"><span style="font-size:14px">🪙</span>1,150</div><div class="pkg-bonus">+150 bonus</div><div class="pkg-label">Value</div><div class="pkg-price">$6.99</div><button class="pkg-buy">Achte</button></div>
+      <div class="pkg-card" onclick="showToast('$29.99 → 6,000 pyès (Demo mode)')"><div class="pkg-coins"><span style="font-size:14px">🪙</span>6,000</div><div class="pkg-bonus">+1k bonus</div><div class="pkg-label">Pro</div><div class="pkg-price">$29.99</div><button class="pkg-buy">Achte</button></div>
+    </div>
+    <div class="section-title">Touche Pyès</div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:0 14px">
+      <div class="earn-row"><span style="font-size:18px">🪙</span><div><div style="font-size:13px;font-weight:600;color:#fff">Creator Milestone</div><div style="font-size:11px;color:var(--dim)">100 pyès · one-time</div></div></div>
+      <div class="earn-row"><span style="font-size:22px">⚔️</span><div><div style="font-size:13px;font-weight:600;color:#fff">Genyen Batay</div><div style="font-size:11px;color:var(--dim)">Touche nan basen pyès la</div></div></div>
+      <div class="earn-row"><span style="font-size:22px">🎬</span><div><div style="font-size:13px;font-weight:600;color:#fff">Resevwa Kado</div><div style="font-size:11px;color:var(--dim)">Lè telespektatè voye kado</div></div></div>
+    </div>
+    <div class="section-title">Istwa</div>
+    <div id="tx-list" style="display:flex;flex-direction:column;gap:4px;padding-bottom:20px"></div>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="navTo('home')"><span class="ni-icon">🏠</span><span class="ni-label">Akèy</span></div>
+    <div class="ni" onclick="navTo('search')"><span class="ni-icon">🔍</span><span class="ni-label">Chèche</span></div>
+    <div class="ni"><div class="ni-plus" onclick="go('upload')">+</div></div>
+    <div class="ni" onclick="navTo('coins')"><span class="ni-icon on">🪙</span><span class="ni-label on">Pyès</span></div>
+    <div class="ni" onclick="navTo('profile')"><span class="ni-icon">👤</span><span class="ni-label">Mwen</span></div>
+  </div>
+</div>
+
+<!-- ══ UPLOAD ══════════════════════════════════ -->
+<div class="screen" id="screen-upload">
+  <div class="statusbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="shead">
+    <span class="back-btn" onclick="goBack()">←</span>
+    <span class="shead-title">🚀 Pibliye Videyo</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="scroll" style="padding:14px;display:flex;flex-direction:column;gap:14px;padding-bottom:40px">
+    <div class="upload-pick" onclick="showToast('Video picker — connect backend to upload real videos!')">
+      <span class="upload-icon">📹</span>
+      <span class="upload-title">Chwazi Videyo</span>
+      <span class="upload-sub">MP4, MOV — max 200MB · max 10 min</span>
+    </div>
+    <div class="field"><label>Tit *</label><input type="text" id="up-title" placeholder="Ki sa videyo ou pale de?"></div>
+    <div class="field"><label>Deskripsyon</label><input type="text" id="up-desc" placeholder="Di telespektatè yo plis..."></div>
+    <div class="field"><label>Hashtags</label><input type="text" id="up-tags" placeholder="#haiti #woy"></div>
+    <div class="field">
+      <label>Depatman</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px" id="up-dept-chips"></div>
+    </div>
+    <button class="btn-primary" onclick="showToast('🚀 Video uploading! (Start backend to enable real uploads)')">🚀 Pibliye Videyo</button>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="navTo('home')"><span class="ni-icon">🏠</span><span class="ni-label">Akèy</span></div>
+    <div class="ni" onclick="navTo('search')"><span class="ni-icon">🔍</span><span class="ni-label">Chèche</span></div>
+    <div class="ni"><div class="ni-plus" style="box-shadow:0 0 0 3px rgba(255,106,0,.4)">+</div></div>
+    <div class="ni" onclick="navTo('coins')"><span class="ni-icon">🪙</span><span class="ni-label">Pyès</span></div>
+    <div class="ni" onclick="navTo('profile')"><span class="ni-icon">👤</span><span class="ni-label">Mwen</span></div>
+  </div>
+</div>
+
+<!-- ══ VIDEO DETAIL ════════════════════════════ -->
+<div class="screen" id="screen-detail">
+  <div class="statusbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="shead">
+    <span class="back-btn" onclick="goBack()">←</span>
+    <span class="shead-title" id="detail-title">Videyo</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="scroll" style="padding-bottom:20px">
+    <div style="width:100%;aspect-ratio:9/16;max-height:320px;background:linear-gradient(#1a0d00,#0d0600);display:flex;align-items:center;justify-content:center;font-size:60px;opacity:.4">🎬</div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--border)">
+      <div style="font-size:15px;font-weight:700;color:#fff" id="detail-title2">Videyo</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="fav" style="width:36px;height:36px;border-radius:18px;font-size:14px" id="detail-av">M</div>
+        <span style="font-size:13px;font-weight:600;color:#fff" id="detail-user">@mariejo_ht</span>
+      </div>
+      <div style="display:flex;gap:20px;padding-top:4px">
+        <div class="fact" onclick="toggleLike()" style="flex-direction:row;gap:6px"><span id="detail-heart">🤍</span><span style="color:#fff" id="detail-likes">0</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><span>💬</span><span style="color:#fff;font-size:14px" id="detail-comments">0</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><span>👁️</span><span style="color:#fff;font-size:14px" id="detail-views">0</span></div>
+      </div>
+    </div>
+    <div style="padding:14px">
+      <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:12px">Kòmantè</div>
+      <div id="comments-list" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <input type="text" id="comment-input" placeholder="Ajoute kòmantè..." style="flex:1">
+        <button onclick="submitComment()" style="background:var(--orange);border:none;border-radius:10px;width:44px;height:44px;color:#fff;font-size:20px;cursor:pointer">↑</button>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="navTo('home')"><span class="ni-icon">🏠</span><span class="ni-label">Akèy</span></div>
+    <div class="ni" onclick="navTo('search')"><span class="ni-icon">🔍</span><span class="ni-label">Chèche</span></div>
+    <div class="ni"><div class="ni-plus" onclick="go('upload')">+</div></div>
+    <div class="ni" onclick="navTo('coins')"><span class="ni-icon">🪙</span><span class="ni-label">Pyès</span></div>
+    <div class="ni" onclick="navTo('profile')"><span class="ni-icon">👤</span><span class="ni-label">Mwen</span></div>
+  </div>
+</div>
+
+<!-- ══ FORGOT PASSWORD ═════════════════════════ -->
+<div class="screen" id="screen-forgot">
+  <div class="statusbar"><span>9:41</span><span>⚡ 100%</span></div>
+  <div class="scroll" style="padding:40px 24px;display:flex;flex-direction:column;gap:16px">
+    <span style="color:var(--orange);font-size:14px;cursor:pointer" onclick="go('login')">← Retou</span>
+    <div style="font-size:24px;font-weight:800;color:#fff">Bliye Modpas</div>
+    <div style="font-size:14px;color:var(--muted);line-height:1.6">Antre imèl ou epi nou pral voye yon lyen pou reyinisyalize modpas ou.</div>
+    <input type="email" id="forgot-email" placeholder="ou@imèl.com">
+    <button class="btn-primary" onclick="showToast('Lyen reyinisyalize voye! Tcheke imèl ou ✓')">Voye Lyen Reyinisyalize</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const API = '';  // no backend - demo mode
+
+// Override fetch to return demo data when no backend
+const _origFetch = window.fetch;
+window.fetch = async function(url, opts) {
+  if (!url || url.startsWith('http://localhost') || url === '') {
+    throw new Error('No backend');
+  }
+  return _origFetch(url, opts);
+};
+let token = localStorage.getItem('woy_token') || '';
+let currentUser = JSON.parse(localStorage.getItem('woy_user') || 'null');
+let currentVideos = [];
+let currentVideoIndex = 0;
+let currentVideoId = null;
+let liked = false;
+let history = [];
+let toastTimer;
+
+const DEPTS = ["Artibonite","Centre","Grand'Anse","Nippes","Nord","Nord-Est","Nord-Ouest","Ouest","Sud","Sud-Est"];
+const LANGS = [{flag:'🇭🇹',code:'HT'},{flag:'🇫🇷',code:'FR'},{flag:'🇺🇸',code:'EN'}];
+let langIdx = 0;
+
+// ── helpers ──────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function api(method, path, body) {
+  const opts = {method, headers: {'Content-Type':'application/json'}};
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(API + path, opts);
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Error');
+    return data;
+  } catch(e) {
+    showToast('⚠️ ' + e.message);
+    throw e;
+  }
+}
+
+function go(screen) {
+  history.push(screen);
+  showScreen(screen);
+}
+
+function goBack() {
+  history.pop();
+  const prev = history[history.length-1] || 'home';
+  history.pop();
+  go(prev);
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (el) el.classList.add('active');
+  if (name === 'home') loadFeed();
+  if (name === 'profile') loadProfile();
+  if (name === 'coins') loadCoins();
+  if (name === 'notifications') loadNotifications();
+  if (name === 'detail' && currentVideoId) loadDetail(currentVideoId);
+}
+
+function navTo(name) {
+  history = [name];
+  showScreen(name);
+}
+
+// ── auth ─────────────────────────────────────────────────────────
+const DEMO_USERS = {
+  'admin@woy.app':  {pass:'Admin1234!', user:{id:'u1',email:'admin@woy.app',username:'admin_woy',display_name:'Admin Woy',role:'admin',department:'Ouest',country:'Haiti',coin_balance:1000,followers_count:500,following_count:10,videos_count:5,is_verified:true,bio:'Woy Admin 🇭🇹',avatar_url:''}},
+  'marie@woy.app':  {pass:'Marie1234!', user:{id:'u2',email:'marie@woy.app',username:'mariejo_ht',display_name:'Marie Jean-Baptiste',role:'user',department:'Ouest',country:'Haiti',coin_balance:1250,followers_count:12400,following_count:318,videos_count:47,is_verified:true,bio:'Ayisyèn fyè 🇭🇹 | Kizin | Mizik',avatar_url:''}},
+  'jean@woy.app':   {pass:'Jean1234!',  user:{id:'u3',email:'jean@woy.app',username:'jeanpierre_ht',display_name:'Jean Pierre',role:'user',department:'Nord-Est',country:'Haiti',coin_balance:430,followers_count:3200,following_count:120,videos_count:23,is_verified:false,bio:'Mizisyen nan Nò-Es 🎵',avatar_url:''}},
+};
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass = document.getElementById('login-password').value;
+  if (!email || !pass) { showToast('Tanpri ranpli tout chan yo'); return; }
+
+  // Demo login - works without backend
+  const demo = DEMO_USERS[email];
+  if (demo && demo.pass === pass) {
+    token = 'demo-token-' + Date.now();
+    currentUser = demo.user;
+    localStorage.setItem('woy_token', token);
+    localStorage.setItem('woy_user', JSON.stringify(currentUser));
+    go('home');
+    return;
+  }
+
+  // Try real backend
+  try {
+    if (!API) { showToast('❌ Wrong email or password'); return; }
+    const data = await api('POST', '/auth/login', {email, password: pass});
+    token = data.access_token;
+    currentUser = data.user;
+    localStorage.setItem('woy_token', token);
+    localStorage.setItem('woy_user', JSON.stringify(currentUser));
+    go('home');
+  } catch(e) { showToast('❌ Wrong email or password'); }
+}
+
+async function doRegister() {
+  const display_name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const username = document.getElementById('reg-username').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const dept = document.querySelector('#dept-chips .chip-on')?.dataset.dept || 'Ouest';
+  if (!email || !username || !password) { showToast('Ranpli tout chan yo'); return; }
+  // Demo register
+  token = 'demo-token-' + Date.now();
+  currentUser = {id:'u'+Date.now(),email,username,display_name:display_name||username,
+    role:'user',department:dept,country:'Haiti',coin_balance:100,
+    followers_count:0,following_count:0,videos_count:0,is_verified:false,bio:'',avatar_url:''};
+  localStorage.setItem('woy_token', token);
+  localStorage.setItem('woy_user', JSON.stringify(currentUser));
+  showToast('Kont kreye! Byenveni sou Woy 🇭🇹');
+  go('home');
+}
+
+function doLogout() {
+  token = ''; currentUser = null;
+  localStorage.removeItem('woy_token');
+  localStorage.removeItem('woy_user');
+  history = ['login'];
+  showScreen('login');
+}
+
+// ── feed ─────────────────────────────────────────────────────────
+let feedType = 'foryou';
+
+async function loadFeed() {
+  // Always show demo videos - no backend needed
+  renderDemoVideo();
+  // Try to load from backend if available
+  try {
+    if (!API) return;
+    const data = await api('GET', '/videos/feed?feed_type=' + feedType + '&page=1&limit=10');
+    currentVideos = data.items || [];
+    if (currentVideos.length > 0) {
+      currentVideoIndex = 0;
+      renderVideo(currentVideos[0]);
+    }
+  } catch(e) {
+    // demo mode - already showing demo video
+  }
+}
+
+function renderVideo(v) {
+  currentVideoId = v.id;
+  liked = v.is_liked || false;
+  document.getElementById('heart-icon').textContent = liked ? '❤️' : '🤍';
+  document.getElementById('like-count').textContent = fmt(v.likes_count || 0);
+  document.getElementById('comment-count').textContent = fmt(v.comments_count || 0);
+  document.getElementById('voice-count').textContent = fmt(v.voice_reactions_count || 0);
+  document.getElementById('vid-av').textContent = (v.display_name || v.username || '?')[0].toUpperCase();
+  document.getElementById('vid-name').textContent = v.display_name || v.username;
+  document.getElementById('vid-handle').textContent = '@' + v.username;
+  document.getElementById('vid-title').textContent = v.title || '';
+  document.getElementById('vid-tags').textContent = (v.hashtags || []).join(' ');
+  const emojis = ['🍲','🎵','💃','🌺','🇭🇹','🥁','🏝️','🦜'];
+  document.getElementById('vdish').textContent = emojis[Math.floor(Math.random()*emojis.length)];
+}
+
+function renderDemoVideo() {
+  document.getElementById('heart-icon').textContent = '🤍';
+  document.getElementById('like-count').textContent = '12.4k';
+  document.getElementById('comment-count').textContent = '284';
+  document.getElementById('voice-count').textContent = '48';
+  document.getElementById('vid-av').textContent = 'M';
+  document.getElementById('vid-name').textContent = 'Marie Jean-Baptiste';
+  document.getElementById('vid-handle').textContent = '@mariejo_ht';
+  document.getElementById('vid-title').textContent = 'Soup Joumou tradisyonèl pou 1ye Janvye! 🇭🇹';
+  document.getElementById('vid-tags').textContent = '#haiti #soujoumou #manje #lwes';
+}
+
+function switchFeed(type) {
+  feedType = type;
+  document.getElementById('tab-p').className = 'ftab-t' + (type==='foryou'?' on':'');
+  document.getElementById('tab-f').className = 'ftab-t' + (type==='following'?' on':'');
+  loadFeed();
+}
+
+async function toggleLike() {
+  if (!token) { showToast('Log in to like!'); return; }
+  if (!currentVideoId) { liked = !liked; document.getElementById('heart-icon').textContent = liked?'❤️':'🤍'; return; }
+  try {
+    const data = await api('POST', '/videos/' + currentVideoId + '/like');
+    liked = data.liked;
+    document.getElementById('heart-icon').textContent = liked ? '❤️' : '🤍';
+    document.getElementById('like-count').textContent = fmt(data.likes_count);
+    const dh = document.getElementById('detail-heart');
+    if (dh) dh.textContent = liked ? '❤️' : '🤍';
+    showToast(liked ? '❤️ Liked!' : 'Like removed');
+  } catch(e) {
+    liked = !liked;
+    document.getElementById('heart-icon').textContent = liked?'❤️':'🤍';
+  }
+}
+
+function toggleFollow() {
+  const chip = document.getElementById('follow-chip');
+  const following = chip.textContent.includes('Suiv') && !chip.textContent.includes('+');
+  chip.textContent = following ? '+ Suiv' : '✓ Abòne';
+  showToast(following ? 'Unfollowed' : 'Following! ✓');
+}
+
+// ── gifts ────────────────────────────────────────────────────────
+function openGifts() { document.getElementById('gsheet').classList.add('open'); }
+function closeGifts() { document.getElementById('gsheet').classList.remove('open'); }
+
+async function sendGift(giftId, cost) {
+  closeGifts();
+  if (!token) { showToast('Log in to send gifts!'); return; }
+  if (!currentUser) return;
+  const vid = currentVideos[currentVideoIndex];
+  if (!vid) { showToast('No video selected'); return; }
+  try {
+    await api('POST', '/gifts/send', {recipient_id: vid.user_id, gift_id: giftId, video_id: vid.id});
+    showToast('Gift sent! 🎉 −' + cost + ' pyès');
+    currentUser.coin_balance = (currentUser.coin_balance || 0) - cost;
+    localStorage.setItem('woy_user', JSON.stringify(currentUser));
+    document.getElementById('coin-balance-display').textContent = (currentUser.coin_balance || 0).toLocaleString();
+  } catch(e) {}
+}
+
+// ── profile ──────────────────────────────────────────────────────
+async function loadProfile() {
+  const user = currentUser;
+  if (!user) { go('login'); return; }
+  document.getElementById('p-av').textContent = (user.display_name || user.username || '?')[0].toUpperCase();
+  document.getElementById('p-name').textContent = user.display_name || user.username;
+  document.getElementById('p-handle').textContent = '@' + user.username;
+  document.getElementById('p-bio').textContent = user.bio || '';
+  document.getElementById('p-loc').textContent = '🇭🇹 ' + (user.department || 'Ouest') + ', Haiti';
+  document.getElementById('p-coins').textContent = (user.coin_balance || 0).toLocaleString() + ' Pyès Woy HT';
+  try {
+    const fresh = await api('GET', '/users/' + user.id);
+    document.getElementById('p-followers').textContent = fmt(fresh.followers_count || 0);
+    document.getElementById('p-following').textContent = fmt(fresh.following_count || 0);
+    document.getElementById('p-videos').textContent = fresh.videos_count || 0;
+    const vdata = await api('GET', '/videos/user/' + user.id);
+    const vids = vdata.items || [];
+    const grid = document.getElementById('p-grid');
+    const emojis = ['🍲','🎵','💃','🌺','🇭🇹','🥁','🏝️','🦜','🍓','🎭','🎪','🌊'];
+    grid.innerHTML = (vids.length ? vids : Array(6).fill(null)).map((v,i) =>
+      `<div class="vthumb" onclick="openVideo('${v?.id||''}')">${emojis[i%emojis.length]}<div class="vthumb-lbl">▶ ${v?fmt(v.views||0):Math.round(Math.random()*10+1)+'k'}</div></div>`
+    ).join('');
+  } catch(e) {
+    const grid = document.getElementById('p-grid');
+    const emojis = ['🍲','🎵','💃','🌺','🇭🇹','🥁'];
+    grid.innerHTML = emojis.map((e,i) => `<div class="vthumb">${e}<div class="vthumb-lbl">▶ ${Math.round(Math.random()*10+1)}k</div></div>`).join('');
+  }
+}
+
+function openVideo(id) {
+  if (id) currentVideoId = id;
+  else if (currentVideos[0]) currentVideoId = currentVideos[0].id;
+  go('detail');
+}
+
+// ── detail ───────────────────────────────────────────────────────
+async function loadDetail(videoId) {
+  try {
+    const v = await api('GET', '/videos/' + videoId);
+    document.getElementById('detail-title').textContent = v.title || 'Videyo';
+    document.getElementById('detail-title2').textContent = v.title || 'Videyo';
+    document.getElementById('detail-av').textContent = (v.username||'?')[0].toUpperCase();
+    document.getElementById('detail-user').textContent = '@' + v.username;
+    document.getElementById('detail-likes').textContent = fmt(v.likes_count||0);
+    document.getElementById('detail-comments').textContent = fmt(v.comments_count||0);
+    document.getElementById('detail-views').textContent = fmt(v.views||0);
+    document.getElementById('detail-heart').textContent = v.is_liked ? '❤️' : '🤍';
+    const cdata = await api('GET', '/videos/' + videoId + '/comments');
+    const comments = cdata.items || [];
+    document.getElementById('comments-list').innerHTML = comments.length
+      ? comments.map(c => `<div style="display:flex;gap:10px"><div style="width:32px;height:32px;border-radius:16px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${(c.username||'?')[0].toUpperCase()}</div><div><div style="font-size:12px;font-weight:700;color:#fff">${c.display_name||c.username}</div><div style="font-size:13px;color:var(--muted)">${c.text}</div></div></div>`).join('')
+      : '<div style="color:var(--dim);font-size:13px;text-align:center;padding:20px">Pa gen kòmantè ankò. Se premye!</div>';
+  } catch(e) {
+    document.getElementById('detail-title').textContent = 'Videyo';
+    document.getElementById('detail-title2').textContent = 'Demo Video';
+  }
+}
+
+async function submitComment() {
+  const input = document.getElementById('comment-input');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!token) { showToast('Log in to comment!'); return; }
+  if (!currentVideoId) { showToast('No video selected'); return; }
+  try {
+    const c = await api('POST', '/videos/' + currentVideoId + '/comments', {text});
+    input.value = '';
+    const list = document.getElementById('comments-list');
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:10px';
+    div.innerHTML = `<div style="width:32px;height:32px;border-radius:16px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;flex-shrink:0">${(currentUser?.username||'?')[0].toUpperCase()}</div><div><div style="font-size:12px;font-weight:700;color:#fff">${currentUser?.display_name||currentUser?.username}</div><div style="font-size:13px;color:var(--muted)">${text}</div></div>`;
+    list.prepend(div);
+    showToast('Kòmantè pibliye ✓');
+  } catch(e) {}
+}
+
+// ── coins ────────────────────────────────────────────────────────
+async function loadCoins() {
+  if (!token || !currentUser) return;
+  try {
+    const data = await api('GET', '/coins/balance');
+    document.getElementById('coin-balance-display').textContent = (data.balance||0).toLocaleString();
+    const prog = data.milestone_bonus?.progress;
+    if (prog) {
+      const f = prog.followers;
+      const v = prog.qualifying_videos;
+      document.getElementById('prog-followers-lbl').textContent = `${f.current} / ${f.required} abòne`;
+      document.getElementById('prog-followers').style.width = Math.min(100, Math.round(f.current/f.required*100)) + '%';
+      document.getElementById('prog-videos-lbl').textContent = `${v.current} / ${v.required} videyo ak 101+ likes`;
+      document.getElementById('prog-videos').style.width = Math.min(100, Math.round(v.current/v.required*100)) + '%';
+    }
+    const txns = await api('GET', '/coins/transactions');
+    const icons = {daily_bonus:'🎁',milestone_bonus:'🏆',purchase:'💳',gift_sent:'↑',gift_received:'↓',welcome_bonus:'🎉',email_verify_bonus:'✅'};
+    document.getElementById('tx-list').innerHTML = txns.slice(0,10).map(t =>
+      `<div class="tx-row"><span style="font-size:18px">${icons[t.type]||'🪙'}</span><div class="tx-desc"><div>${t.description}</div><div class="tx-date">${t.created_at?.split('T')[0]}</div></div><span class="tx-amt" style="color:${t.amount>=0?'#00C853':'#FF3B5C'}">${t.amount>=0?'+':''}${t.amount}</span></div>`
+    ).join('');
+  } catch(e) {}
+}
+
+// ── notifications ────────────────────────────────────────────────
+async function loadNotifications() {
+  try {
+    const data = await api('GET', '/notifications/');
+    if ((data.items||[]).length === 0) return;
+    const icons = {like:'❤️',comment:'💬',follow:'👤',gift:'🎁',system:'📢'};
+    document.getElementById('notif-list').innerHTML = data.items.map(n =>
+      `<div class="notif-row ${n.is_read?'':'unread'}">
+        <div class="notif-ico">${icons[n.type]||'📢'}</div>
+        <div style="flex:1"><div class="notif-title">${n.title}</div>${n.body?`<div class="notif-body">${n.body}</div>`:''}
+        <div class="notif-time">${n.created_at?.split('T')[0]}</div></div>
+        ${n.is_read?'':'<div class="notif-dot"></div>'}
+      </div>`
+    ).join('');
+  } catch(e) {}
+}
+
+// ── search ───────────────────────────────────────────────────────
+let searchTimer;
+function doSearch(q) {
+  clearTimeout(searchTimer);
+  if (!q) return;
+  searchTimer = setTimeout(async () => {
+    try {
+      const data = await api('GET', '/search/?q=' + encodeURIComponent(q));
+      let html = '';
+      if ((data.hashtags||[]).length) {
+        html += '<div class="sec-title">Hashtags</div>';
+        html += data.hashtags.map(h => `<div class="stag-row"><span class="stag">${h.tag}</span><span class="stag-count">${h.count} videyo</span></div>`).join('');
+      }
+      if ((data.users||[]).length) {
+        html += '<div class="sec-title">Itilizatè</div>';
+        html += data.users.map(u => `<div class="suser-row" onclick="showToast('Opening @${u.username}')"><div class="suser-av" style="background:linear-gradient(135deg,#FF6A00,#FFC857)">${(u.username||'?')[0].toUpperCase()}</div><div><div class="suser-name">${u.display_name||u.username}</div><div class="suser-meta">@${u.username}</div></div></div>`).join('');
+      }
+      if (html) document.getElementById('search-results').innerHTML = html;
+    } catch(e) {}
+  }, 400);
+}
+
+// ── dept chips ───────────────────────────────────────────────────
+function buildDeptChips(containerId, selected='Ouest') {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = DEPTS.map(d => `<div data-dept="${d}" class="stab ${d===selected?'on chip-on':''}" onclick="selectDept(this,'${containerId}')" style="padding:5px 10px;font-size:11px">${d}</div>`).join('');
+}
+
+function selectDept(el, containerId) {
+  document.querySelectorAll('#'+containerId+' .stab').forEach(c => { c.classList.remove('on','chip-on'); });
+  el.classList.add('on','chip-on');
+}
+
+// ── utils ────────────────────────────────────────────────────────
+function fmt(n) {
+  if (n >= 1000000) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1000) return (n/1000).toFixed(1)+'k';
+  return String(n||0);
+}
+
+function cycleLang() {
+  langIdx = (langIdx+1)%LANGS.length;
+  const l = LANGS[langIdx];
+  ['lang-flag','lang-flag2','lf'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=l.flag; });
+  ['lang-code','lang-code2','lc'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=l.code; });
+  const names = {HT:'Kreyòl',FR:'Français',EN:'English'};
+  showToast('Lang: ' + names[l.code] + ' ✓');
+}
+
+// ── init ─────────────────────────────────────────────────────────
+buildDeptChips('dept-chips', 'Ouest');
+buildDeptChips('up-dept-chips', 'Ouest');
+
+if (token && currentUser) {
+  history = ['home'];
+  showScreen('home');
+} else {
+  history = ['login'];
+  showScreen('login');
+}
+</script>
+</body>
+</html>
